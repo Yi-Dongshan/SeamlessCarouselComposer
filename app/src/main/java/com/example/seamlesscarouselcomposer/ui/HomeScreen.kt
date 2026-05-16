@@ -1,6 +1,5 @@
 package com.example.seamlesscarouselcomposer.ui
 
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,8 +30,4 @@ fun HomeScreen(vm: ProjectViewModel) {
             EditorScreen(vm)
         }
     }
-}
-
-fun shareIntent(uri: android.net.Uri): Intent = Intent(Intent.ACTION_SEND).apply {
-    type = "image/jpeg"; putExtra(Intent.EXTRA_STREAM, uri); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 }
