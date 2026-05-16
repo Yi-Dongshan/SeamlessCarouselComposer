@@ -13,6 +13,7 @@ import com.example.seamlesscarouselcomposer.data.ProjectViewModel
 import com.example.seamlesscarouselcomposer.ui.components.CompositePreview
 import com.example.seamlesscarouselcomposer.ui.components.TransformControlPanel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorScreen(vm: ProjectViewModel) {
     val s by vm.state.collectAsStateWithLifecycle()
