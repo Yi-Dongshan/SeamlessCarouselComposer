@@ -25,6 +25,7 @@
 
 ## CI
 - 仓库内置 GitHub Actions Android CI：`.github/workflows/android-ci.yml`。
+- CI 会先执行 `gradle wrapper` 生成 `gradle-wrapper.jar`，再运行 `./gradlew --no-daemon assembleDebug`。
 - 每次 push / pull request 都会执行 `assembleDebug`，并自动上传 `app-debug-apk` artifact 供下载。
 
 ## MVP 限制
