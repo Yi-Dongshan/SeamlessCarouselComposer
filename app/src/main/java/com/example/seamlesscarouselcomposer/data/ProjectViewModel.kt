@@ -36,6 +36,20 @@ class ProjectViewModel(app: Application) : AndroidViewModel(app) {
     fun setPreset(preset: ExportPreset) { _state.value = _state.value.copy(preset = preset) }
     fun setFeather(px: Int) { _state.value = _state.value.copy(featherPx = px) }
 
+    fun resetSelectedTransform() {
+        updateTransform { TransformParams() }
+    }
+
+    fun copySelectedTransformToAll() {
+        val s = _state.value
+        val selected = s.images.getOrNull(s.selectedIndex)?.transform ?: return
+        _state.value = s.copy(images = s.images.map { it.copy(transform = selected) })
+    }
+
+    fun nudgeSelectedOffset(dx: Float = 0f, dy: Float = 0f) {
+        updateTransform { t -> t.copy(offsetX = t.offsetX + dx, offsetY = t.offsetY + dy) }
+    }
+
     fun updateTransform(update: (TransformParams) -> TransformParams) {
         val s = _state.value; if (s.images.isEmpty()) return
         val list = s.images.toMutableList(); val i = s.selectedIndex
@@ -46,7 +60,8 @@ class ProjectViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshPreview() = viewModelScope.launch(Dispatchers.IO) {
         val s = _state.value; if (s.images.isEmpty()) return@launch
         val bmp = renderer.renderFullComposite(getApplication(), CompositeProject(s.images, s.preset, s.featherPx))
-        _state.value = _state.value.copy(preview = bmp)
+        val preview = renderer.renderPreviewComposite(bmp)
+        _state.value = _state.value.copy(preview = preview)
     }
 
     fun export() = viewModelScope.launch(Dispatchers.IO) {
@@ -55,6 +70,7 @@ class ProjectViewModel(app: Application) : AndroidViewModel(app) {
         val full = renderer.renderFullComposite(getApplication(), CompositeProject(s.images, s.preset, s.featherPx))
         val pages = renderer.splitIntoPages(full, s.preset.pageWidth, s.preset.pageHeight, s.images.size)
         val result = exporter.export(getApplication(), full, pages)
-        _state.value = _state.value.copy(exporting = false, exportResult = result, preview = full)
+        val preview = renderer.renderPreviewComposite(full)
+        _state.value = _state.value.copy(exporting = false, exportResult = result, preview = preview)
     }
 }

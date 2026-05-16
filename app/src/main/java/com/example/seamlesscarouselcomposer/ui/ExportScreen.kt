@@ -8,8 +8,9 @@ import com.example.seamlesscarouselcomposer.model.ExportResult
 @Composable
 fun ExportScreen(result: ExportResult) {
     Column {
-        Text("导出成功")
-        Text("Full: ${result.fullUri}")
-        result.pageUris.forEachIndexed { i, uri -> Text("Page ${i + 1}: $uri") }
+        Text("导出成功：已保存到 Pictures/SeamlessCarouselComposer")
+        Text("共 ${result.pageUris.size + 1} 张图片（1 张总图 + ${result.pageUris.size} 张分页图）")
+        Text("分页数量：${result.pageUris.size}")
+        Text("TODO: 分享按钮")
     }
 }
