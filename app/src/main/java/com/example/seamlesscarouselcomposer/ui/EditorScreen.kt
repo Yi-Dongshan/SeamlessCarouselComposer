@@ -46,9 +46,11 @@ fun EditorScreen(vm: ProjectViewModel) {
                         .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    s.preview?.let {
+                    if (s.preview == null) {
+                        Text("点击刷新预览生成合成图", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    } else {
                         CompositePreview(
-                            bitmap = it,
+                            bitmap = s.preview!!,
                             pageCount = s.images.size.coerceAtLeast(1),
                             modifier = Modifier.fillMaxSize()
                         )
@@ -57,11 +59,13 @@ fun EditorScreen(vm: ProjectViewModel) {
             }
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 300.dp),
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                TransformControlPanel(vm)
+                TransformControlPanel(vm, modifier = Modifier.fillMaxWidth())
             }
 
             s.exportResult?.let { ExportScreen(it) }
