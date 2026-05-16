@@ -35,4 +35,11 @@ class CompositeRenderer {
 
     fun splitIntoPages(fullComposite: Bitmap, pageWidth: Int, pageHeight: Int, pageCount: Int): List<Bitmap> =
         (0 until pageCount).map { i -> Bitmap.createBitmap(fullComposite, i * pageWidth, 0, pageWidth, pageHeight) }
+
+    fun renderPreviewComposite(fullComposite: Bitmap, maxWidth: Int = 1600): Bitmap {
+        if (fullComposite.width <= maxWidth) return fullComposite
+        val scale = maxWidth.toFloat() / fullComposite.width.toFloat()
+        val targetHeight = (fullComposite.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(fullComposite, maxWidth, targetHeight, true)
+    }
 }
