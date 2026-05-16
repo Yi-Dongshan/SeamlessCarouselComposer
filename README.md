@@ -8,10 +8,24 @@
 - 导出 1 张 full 合成图 + N 张轮播分页图。
 - MediaStore 保存到 `Pictures/SeamlessCarouselComposer/`。
 
-## 运行
-1. 用 Android Studio 打开项目。
-2. Sync Gradle。
-3. 连接 Android 10+ 设备运行 `app`。
+## 构建与运行
+1. 确保本机安装 JDK 17 与 Android SDK（建议直接使用最新版 Android Studio）。
+2. 使用 Android Studio 打开项目并等待 Gradle Sync 完成。
+3. 首次命令行构建前，给 Wrapper 增加执行权限：
+   ```bash
+   chmod +x gradlew
+   ```
+4. 命令行构建 Debug APK：
+   ```bash
+   gradle wrapper
+   ./gradlew assembleDebug
+   ```
+   > 说明：仓库不提交 `gradle-wrapper.jar`（二进制文件），首次构建前请先执行 `gradle wrapper` 生成。
+5. 连接 Android 10+ 设备后，可在 Android Studio 直接运行 `app` 模块。
+
+## CI
+- 仓库内置 GitHub Actions Android CI：`.github/workflows/android-ci.yml`。
+- 每次 push / pull request 都会执行 `assembleDebug`，并自动上传 `app-debug-apk` artifact 供下载。
 
 ## MVP 限制
 - 当前接缝默认硬切；feather 参数已预留。
