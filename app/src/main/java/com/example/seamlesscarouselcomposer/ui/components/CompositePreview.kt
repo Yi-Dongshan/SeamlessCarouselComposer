@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun CompositePreview(bitmap: Bitmap, pageCount: Int, modifier: Modifier = Modifier) {
+    val safePageCount = pageCount.coerceAtLeast(1)
     Canvas(
         modifier
             .fillMaxWidth()
@@ -23,8 +24,8 @@ fun CompositePreview(bitmap: Bitmap, pageCount: Int, modifier: Modifier = Modifi
             val canvasHeight = size.height
             drawImage(bitmap.asImageBitmap(), dstSize = IntSize(size.width.toInt(), canvasHeight.toInt()))
 
-            val segmentWidth = size.width / pageCount
-            for (i in 1 until pageCount) {
+            val segmentWidth = size.width / safePageCount
+            for (i in 1 until safePageCount) {
                 val x = i * segmentWidth
                 drawLine(Color.White, Offset(x, 0f), Offset(x, canvasHeight), strokeWidth = 2f)
                 drawLine(Color.Black.copy(alpha = 0.5f), Offset(x + 1f, 0f), Offset(x + 1f, canvasHeight), strokeWidth = 1f)
@@ -37,9 +38,10 @@ fun CompositePreview(bitmap: Bitmap, pageCount: Int, modifier: Modifier = Modifi
                     isFakeBoldText = true
                     setShadowLayer(8f, 0f, 0f, android.graphics.Color.BLACK)
                 }
-                repeat(pageCount) { idx ->
+                val textY = 44.sp.toPx()
+                repeat(safePageCount) { idx ->
                     val x = idx * segmentWidth + 16f
-                    c.nativeCanvas.drawText("Page ${idx + 1}", x, 40f, paint)
+                    c.nativeCanvas.drawText("Page ${idx + 1}", x, textY, paint)
                 }
             }
     }
