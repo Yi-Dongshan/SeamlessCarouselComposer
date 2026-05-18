@@ -7,6 +7,11 @@ import android.graphics.Matrix
 import com.example.seamlesscarouselcomposer.model.CompositeProject
 
 class CompositeRenderer {
+    fun renderPreviewProject(context: Context, project: CompositeProject, maxWidth: Int = 1600): Bitmap {
+        val full = renderFullComposite(context, project)
+        return renderPreviewComposite(full, maxWidth)
+    }
+
     fun renderFullComposite(context: Context, project: CompositeProject): Bitmap {
         val pageCount = project.images.size
         val width = project.preset.pageWidth * pageCount
