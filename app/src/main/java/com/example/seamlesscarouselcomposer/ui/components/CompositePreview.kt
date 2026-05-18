@@ -1,6 +1,7 @@
 package com.example.seamlesscarouselcomposer.ui.components
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
@@ -12,46 +13,63 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
-import kotlin.math.max
+import com.example.seamlesscarouselcomposer.model.ExportPreset
+import com.example.seamlesscarouselcomposer.model.SourceImage
+import com.example.seamlesscarouselcomposer.processing.BitmapLoader
+import com.example.seamlesscarouselcomposer.processing.ImageTransformUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CompositePreview(
-    bitmap: Bitmap,
-    pageCount: Int,
+    images: List<SourceImage>,
+    preset: ExportPreset,
     modifier: Modifier = Modifier,
     onTransformGesture: ((pan: Offset, zoom: Float, rotation: Float) -> Unit)? = null
 ) {
-    val safePageCount = pageCount.coerceAtLeast(1)
+    val safePageCount = images.size.coerceAtLeast(1)
+    val context = LocalContext.current
+    val bitmaps by produceState(initialValue = emptyMap<String, Bitmap>(), images) {
+        value = withContext(Dispatchers.IO) {
+            images.associate { source -> source.id to BitmapLoader.load(context.contentResolver, source.uri) }
+        }
+    }
+
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val density = LocalDensity.current
         val viewportWidthPx = with(density) { maxWidth.toPx() }
         val viewportHeightPx = with(density) { maxHeight.toPx() }
+        val logicalWidth = (preset.pageWidth * safePageCount).toFloat()
+        val logicalHeight = preset.pageHeight.toFloat().coerceAtLeast(1f)
         val fittedHeightPx = viewportHeightPx.coerceAtLeast(1f)
-        val fittedWidthPx = (fittedHeightPx * bitmap.width.toFloat() / bitmap.height.toFloat()).coerceAtLeast(1f)
-        val drawWidthPx = max(fittedWidthPx, viewportWidthPx)
+        val previewScale = fittedHeightPx / logicalHeight
+        val drawWidthPx = (logicalWidth * previewScale).coerceAtLeast(viewportWidthPx).coerceAtLeast(1f)
         val drawWidthDp = with(density) { drawWidthPx.toDp() }
         val drawHeightDp = with(density) { fittedHeightPx.toDp() }
+        val isEditMode = onTransformGesture != null
 
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .height(drawHeightDp)
-            ) {
+            val contentModifier = if (isEditMode) {
+                Modifier.height(drawHeightDp)
+            } else {
+                Modifier.horizontalScroll(rememberScrollState()).height(drawHeightDp)
+            }
+            Box(modifier = contentModifier) {
                 Canvas(
                     modifier = Modifier
                         .width(drawWidthDp)
@@ -59,15 +77,37 @@ fun CompositePreview(
                         .pointerInput(onTransformGesture) {
                             if (onTransformGesture != null) {
                                 detectTransformGestures { _, pan, zoom, rotation ->
-                                    onTransformGesture(pan, zoom, rotation)
+                                    onTransformGesture(
+                                        Offset(pan.x / previewScale, pan.y / previewScale),
+                                        zoom,
+                                        rotation
+                                    )
                                 }
                             }
                         }
                 ) {
                     val canvasHeight = size.height
-                    drawImage(bitmap.asImageBitmap(), dstSize = IntSize(size.width.toInt(), canvasHeight.toInt()))
+                    val drawScale = previewScale
 
-                    val segmentWidth = size.width / safePageCount
+                    images.forEachIndexed { index, source ->
+                        val src = bitmaps[source.id] ?: return@forEachIndexed
+                        val base = ImageTransformUtils.coverMatrix(src.width, src.height, logicalWidth.toInt(), logicalHeight.toInt())
+                        val tr = source.transform
+                        val extra = Matrix().apply {
+                            postTranslate(tr.offsetX, tr.offsetY)
+                            postScale(tr.scale, tr.scale, logicalWidth / 2f, logicalHeight / 2f)
+                            postRotate(tr.rotation, logicalWidth / 2f, logicalHeight / 2f)
+                        }
+                        val matrix = Matrix(base).apply { postConcat(extra); postScale(drawScale, drawScale) }
+                        drawIntoCanvas { c ->
+                            c.nativeCanvas.save()
+                            c.nativeCanvas.clipRect(index * preset.pageWidth * drawScale, 0f, (index + 1) * preset.pageWidth * drawScale, canvasHeight)
+                            c.nativeCanvas.drawBitmap(src, matrix, null)
+                            c.nativeCanvas.restore()
+                        }
+                    }
+
+                    val segmentWidth = preset.pageWidth * drawScale
                     for (i in 1 until safePageCount) {
                         val x = i * segmentWidth
                         drawLine(Color.White, Offset(x, 0f), Offset(x, canvasHeight), strokeWidth = 2f)

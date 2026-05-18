@@ -72,12 +72,12 @@ fun EditorScreen(vm: ProjectViewModel) {
                 shape = MaterialTheme.shapes.extraLarge
             ) {
                 Box(modifier = Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center) {
-                    if (s.preview == null) {
-                        Text("点击刷新预览生成合成图", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    if (s.images.isEmpty()) {
+                        Text("请先导入图片", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                     } else {
                         CompositePreview(
-                            bitmap = s.preview!!,
-                            pageCount = s.images.size.coerceAtLeast(1),
+                            images = s.images,
+                            preset = s.preset,
                             modifier = Modifier.fillMaxSize(),
                             onTransformGesture = if (editMode) { pan, zoom, rotation ->
                                 vm.updateTransform(refreshPreview = false) { tr ->
@@ -88,7 +88,6 @@ fun EditorScreen(vm: ProjectViewModel) {
                                         rotation = (tr.rotation + rotation).coerceIn(-5f, 5f)
                                     )
                                 }
-                                vm.commitPreviewRefresh()
                             } else null
                         )
                         Text(

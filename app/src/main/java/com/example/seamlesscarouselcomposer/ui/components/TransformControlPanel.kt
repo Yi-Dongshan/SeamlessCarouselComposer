@@ -16,8 +16,10 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.seamlesscarouselcomposer.data.ProjectViewModel
 import com.example.seamlesscarouselcomposer.model.ExportPreset
 
@@ -25,7 +27,7 @@ enum class EditorTool(val label: String) { Move("Move"), Scale("Scale"), Rotate(
 
 @Composable
 fun TransformControlPanel(vm: ProjectViewModel, selectedTool: EditorTool, onToolSelected: (EditorTool) -> Unit, modifier: Modifier = Modifier) {
-    val s = vm.state.value
+    val s by vm.state.collectAsStateWithLifecycle()
     val t = s.images.getOrNull(s.selectedIndex)?.transform ?: return
 
     Column(modifier = modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
