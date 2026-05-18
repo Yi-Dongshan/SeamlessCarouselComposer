@@ -2,6 +2,7 @@ package com.example.seamlesscarouselcomposer.ui.components
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,20 +12,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import kotlin.math.max
 
 @Composable
-fun CompositePreview(bitmap: Bitmap, pageCount: Int, modifier: Modifier = Modifier) {
+fun CompositePreview(
+    bitmap: Bitmap,
+    pageCount: Int,
+    modifier: Modifier = Modifier,
+    onTransformGesture: ((pan: Offset, zoom: Float, rotation: Float) -> Unit)? = null
+) {
     val safePageCount = pageCount.coerceAtLeast(1)
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val density = LocalDensity.current
@@ -49,6 +56,13 @@ fun CompositePreview(bitmap: Bitmap, pageCount: Int, modifier: Modifier = Modifi
                     modifier = Modifier
                         .width(drawWidthDp)
                         .fillMaxHeight()
+                        .pointerInput(onTransformGesture) {
+                            if (onTransformGesture != null) {
+                                detectTransformGestures { _, pan, zoom, rotation ->
+                                    onTransformGesture(pan, zoom, rotation)
+                                }
+                            }
+                        }
                 ) {
                     val canvasHeight = size.height
                     drawImage(bitmap.asImageBitmap(), dstSize = IntSize(size.width.toInt(), canvasHeight.toInt()))
