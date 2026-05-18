@@ -43,23 +43,43 @@ fun TransformControlPanel(vm: ProjectViewModel, selectedTool: EditorTool, onTool
                         TextButton(onClick = { vm.nudgeSelectedOffset(dx = delta) }) { Text(if (delta > 0) "+${delta.toInt()}" else delta.toInt().toString()) }
                     }
                 }
-                Slider(value = t.offsetX, onValueChange = { vm.updateTransform { tr -> tr.copy(offsetX = it) } }, valueRange = -800f..800f)
+                Slider(
+                    value = t.offsetX,
+                    onValueChange = { vm.updateTransform({ tr -> tr.copy(offsetX = it) }, refreshPreview = false) },
+                    onValueChangeFinished = { vm.commitPreviewRefresh() },
+                    valueRange = -800f..800f
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     listOf(-10f, -1f, 1f, 10f).forEach { delta ->
                         TextButton(onClick = { vm.nudgeSelectedOffset(dy = delta) }) { Text(if (delta > 0) "+${delta.toInt()}" else delta.toInt().toString()) }
                     }
                 }
-                Slider(value = t.offsetY, onValueChange = { vm.updateTransform { tr -> tr.copy(offsetY = it) } }, valueRange = -800f..800f)
+                Slider(
+                    value = t.offsetY,
+                    onValueChange = { vm.updateTransform({ tr -> tr.copy(offsetY = it) }, refreshPreview = false) },
+                    onValueChangeFinished = { vm.commitPreviewRefresh() },
+                    valueRange = -800f..800f
+                )
             }
 
             EditorTool.Scale -> {
                 Text("Scale ${"%.2f".format(t.scale)}", style = MaterialTheme.typography.labelMedium)
-                Slider(value = t.scale, onValueChange = { vm.updateTransform { tr -> tr.copy(scale = it.coerceIn(0.5f, 2f)) } }, valueRange = 0.5f..2f)
+                Slider(
+                    value = t.scale,
+                    onValueChange = { vm.updateTransform({ tr -> tr.copy(scale = it.coerceIn(0.5f, 2f)) }, refreshPreview = false) },
+                    onValueChangeFinished = { vm.commitPreviewRefresh() },
+                    valueRange = 0.5f..2f
+                )
             }
 
             EditorTool.Rotate -> {
                 Text("Rotation ${"%.2f".format(t.rotation)}°", style = MaterialTheme.typography.labelMedium)
-                Slider(value = t.rotation, onValueChange = { vm.updateTransform { tr -> tr.copy(rotation = it.coerceIn(-5f, 5f)) } }, valueRange = -5f..5f)
+                Slider(
+                    value = t.rotation,
+                    onValueChange = { vm.updateTransform({ tr -> tr.copy(rotation = it.coerceIn(-5f, 5f)) }, refreshPreview = false) },
+                    onValueChangeFinished = { vm.commitPreviewRefresh() },
+                    valueRange = -5f..5f
+                )
             }
 
             EditorTool.Export -> {

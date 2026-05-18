@@ -78,14 +78,18 @@ class ProjectViewModel(app: Application) : AndroidViewModel(app) {
         updateTransform { t -> t.copy(offsetX = t.offsetX + dx, offsetY = t.offsetY + dy) }
     }
 
-    fun updateTransform(update: (TransformParams) -> TransformParams) {
+    fun commitPreviewRefresh() {
+        schedulePreviewRefresh()
+    }
+
+    fun updateTransform(update: (TransformParams) -> TransformParams, refreshPreview: Boolean = true) {
         val s = _state.value
         if (s.images.isEmpty()) return
         val list = s.images.toMutableList()
         val i = s.selectedIndex
         list[i] = list[i].copy(transform = update(list[i].transform))
         _state.value = s.copy(images = list)
-        schedulePreviewRefresh()
+        if (refreshPreview) schedulePreviewRefresh()
     }
 
     private fun schedulePreviewRefresh() {

@@ -18,6 +18,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,6 +42,7 @@ import com.example.seamlesscarouselcomposer.ui.components.TransformControlPanel
 fun EditorScreen(vm: ProjectViewModel) {
     val s by vm.state.collectAsStateWithLifecycle()
     var selectedTool by remember { mutableStateOf(EditorTool.Move) }
+    var editMode by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -77,19 +79,20 @@ fun EditorScreen(vm: ProjectViewModel) {
                             bitmap = s.preview!!,
                             pageCount = s.images.size.coerceAtLeast(1),
                             modifier = Modifier.fillMaxSize(),
-                            onTransformGesture = { pan, zoom, rotation ->
-                                vm.updateTransform { tr ->
+                            onTransformGesture = if (editMode) { pan, zoom, rotation ->
+                                vm.updateTransform({ tr ->
                                     tr.copy(
                                         offsetX = tr.offsetX + pan.x,
                                         offsetY = tr.offsetY + pan.y,
                                         scale = (tr.scale * zoom).coerceIn(0.5f, 2f),
                                         rotation = (tr.rotation + rotation).coerceIn(-5f, 5f)
                                     )
-                                }
-                            }
+                                }, refreshPreview = false)
+                                vm.commitPreviewRefresh()
+                            } else null
                         )
                         Text(
-                            "Drag to move · pinch to zoom · rotate with two fingers",
+                            if (editMode) "Drag to move · pinch to zoom · rotate with two fingers" else "View mode: swipe to inspect pages",
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .background(Color.Black.copy(alpha = 0.24f), MaterialTheme.shapes.small)
@@ -99,6 +102,23 @@ fun EditorScreen(vm: ProjectViewModel) {
                         )
                     }
                 }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                FilterChip(
+                    selected = !editMode,
+                    onClick = { editMode = false },
+                    label = { Text("View") }
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(8.dp))
+                FilterChip(
+                    selected = editMode,
+                    onClick = { editMode = true },
+                    label = { Text("Edit") }
+                )
             }
 
             Card(
