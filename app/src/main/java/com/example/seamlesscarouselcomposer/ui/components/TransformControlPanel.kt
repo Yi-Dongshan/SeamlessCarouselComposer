@@ -45,7 +45,7 @@ fun TransformControlPanel(vm: ProjectViewModel, selectedTool: EditorTool, onTool
                 }
                 Slider(
                     value = t.offsetX,
-                    onValueChange = { vm.updateTransform({ tr -> tr.copy(offsetX = it) }, refreshPreview = false) },
+                    onValueChange = { vm.updateTransform(refreshPreview = false) { tr -> tr.copy(offsetX = it) } },
                     onValueChangeFinished = { vm.commitPreviewRefresh() },
                     valueRange = -800f..800f
                 )
@@ -56,7 +56,7 @@ fun TransformControlPanel(vm: ProjectViewModel, selectedTool: EditorTool, onTool
                 }
                 Slider(
                     value = t.offsetY,
-                    onValueChange = { vm.updateTransform({ tr -> tr.copy(offsetY = it) }, refreshPreview = false) },
+                    onValueChange = { vm.updateTransform(refreshPreview = false) { tr -> tr.copy(offsetY = it) } },
                     onValueChangeFinished = { vm.commitPreviewRefresh() },
                     valueRange = -800f..800f
                 )
@@ -66,7 +66,7 @@ fun TransformControlPanel(vm: ProjectViewModel, selectedTool: EditorTool, onTool
                 Text("Scale ${"%.2f".format(t.scale)}", style = MaterialTheme.typography.labelMedium)
                 Slider(
                     value = t.scale,
-                    onValueChange = { vm.updateTransform({ tr -> tr.copy(scale = it.coerceIn(0.5f, 2f)) }, refreshPreview = false) },
+                    onValueChange = { vm.updateTransform(refreshPreview = false) { tr -> tr.copy(scale = it.coerceIn(0.5f, 2f)) } },
                     onValueChangeFinished = { vm.commitPreviewRefresh() },
                     valueRange = 0.5f..2f
                 )
@@ -76,7 +76,7 @@ fun TransformControlPanel(vm: ProjectViewModel, selectedTool: EditorTool, onTool
                 Text("Rotation ${"%.2f".format(t.rotation)}°", style = MaterialTheme.typography.labelMedium)
                 Slider(
                     value = t.rotation,
-                    onValueChange = { vm.updateTransform({ tr -> tr.copy(rotation = it.coerceIn(-5f, 5f)) }, refreshPreview = false) },
+                    onValueChange = { vm.updateTransform(refreshPreview = false) { tr -> tr.copy(rotation = it.coerceIn(-5f, 5f)) } },
                     onValueChangeFinished = { vm.commitPreviewRefresh() },
                     valueRange = -5f..5f
                 )

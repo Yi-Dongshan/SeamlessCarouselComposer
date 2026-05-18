@@ -80,14 +80,14 @@ fun EditorScreen(vm: ProjectViewModel) {
                             pageCount = s.images.size.coerceAtLeast(1),
                             modifier = Modifier.fillMaxSize(),
                             onTransformGesture = if (editMode) { pan, zoom, rotation ->
-                                vm.updateTransform({ tr ->
+                                vm.updateTransform(refreshPreview = false) { tr ->
                                     tr.copy(
                                         offsetX = tr.offsetX + pan.x,
                                         offsetY = tr.offsetY + pan.y,
                                         scale = (tr.scale * zoom).coerceIn(0.5f, 2f),
                                         rotation = (tr.rotation + rotation).coerceIn(-5f, 5f)
                                     )
-                                }, refreshPreview = false)
+                                }
                                 vm.commitPreviewRefresh()
                             } else null
                         )

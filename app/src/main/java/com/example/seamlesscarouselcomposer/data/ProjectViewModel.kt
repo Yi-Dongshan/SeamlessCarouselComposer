@@ -82,7 +82,7 @@ class ProjectViewModel(app: Application) : AndroidViewModel(app) {
         schedulePreviewRefresh()
     }
 
-    fun updateTransform(update: (TransformParams) -> TransformParams, refreshPreview: Boolean = true) {
+    fun updateTransform(refreshPreview: Boolean = true, update: (TransformParams) -> TransformParams) {
         val s = _state.value
         if (s.images.isEmpty()) return
         val list = s.images.toMutableList()
