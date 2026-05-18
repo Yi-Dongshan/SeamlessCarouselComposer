@@ -31,7 +31,6 @@ import com.example.seamlesscarouselcomposer.processing.BitmapLoader
 import com.example.seamlesscarouselcomposer.processing.ImageTransformUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.max
 
 @Composable
 fun CompositePreview(
@@ -56,8 +55,7 @@ fun CompositePreview(
         val logicalHeight = preset.pageHeight.toFloat().coerceAtLeast(1f)
         val fittedHeightPx = viewportHeightPx.coerceAtLeast(1f)
         val previewScale = fittedHeightPx / logicalHeight
-        val fittedWidthPx = (logicalWidth * previewScale).coerceAtLeast(1f)
-        val drawWidthPx = max(fittedWidthPx, viewportWidthPx)
+        val drawWidthPx = (logicalWidth * previewScale).coerceAtLeast(viewportWidthPx).coerceAtLeast(1f)
         val drawWidthDp = with(density) { drawWidthPx.toDp() }
         val drawHeightDp = with(density) { fittedHeightPx.toDp() }
         val isEditMode = onTransformGesture != null
@@ -89,18 +87,16 @@ fun CompositePreview(
                         }
                 ) {
                     val canvasHeight = size.height
-                    val canvasWidth = size.width
-                    val drawScale = canvasHeight / logicalHeight
-                    val drawLogicalWidth = canvasWidth / drawScale
+                    val drawScale = previewScale
 
                     images.forEachIndexed { index, source ->
                         val src = bitmaps[source.id] ?: return@forEachIndexed
-                        val base = ImageTransformUtils.coverMatrix(src.width, src.height, drawLogicalWidth.toInt(), logicalHeight.toInt())
+                        val base = ImageTransformUtils.coverMatrix(src.width, src.height, logicalWidth.toInt(), logicalHeight.toInt())
                         val tr = source.transform
                         val extra = Matrix().apply {
                             postTranslate(tr.offsetX, tr.offsetY)
-                            postScale(tr.scale, tr.scale, drawLogicalWidth / 2f, logicalHeight / 2f)
-                            postRotate(tr.rotation, drawLogicalWidth / 2f, logicalHeight / 2f)
+                            postScale(tr.scale, tr.scale, logicalWidth / 2f, logicalHeight / 2f)
+                            postRotate(tr.rotation, logicalWidth / 2f, logicalHeight / 2f)
                         }
                         val matrix = Matrix(base).apply { postConcat(extra); postScale(drawScale, drawScale) }
                         drawIntoCanvas { c ->
@@ -111,7 +107,7 @@ fun CompositePreview(
                         }
                     }
 
-                    val segmentWidth = canvasWidth / safePageCount
+                    val segmentWidth = preset.pageWidth * drawScale
                     for (i in 1 until safePageCount) {
                         val x = i * segmentWidth
                         drawLine(Color.White, Offset(x, 0f), Offset(x, canvasHeight), strokeWidth = 2f)
